@@ -1,0 +1,409 @@
+{
+  "schema_version": "v1",
+  "name": "turminha_mcp",
+  "title": "Turminha (SeatSmart) MCP",
+  "description": "Conector MCP do Turminha para Copilot. Cole o MCP_URL, autentique via OAuth na Turminha e pergunte sobre turmas, alunos e mapas. Não requer SUPABASE_KEY.",
+  "mcp_url": "https://eeypnycefljwkyhxttzo.supabase.co/functions/v1/mcp",
+  "base_url": "https://eeypnycefljwkyhxttzo.supabase.co/functions/v1/mcp",
+  "transport": {
+    "type": "streamable_http",
+    "protocol": "mcp",
+    "http": true
+  },
+  "auth": {
+    "type": "oauth2",
+    "flow": "authorization_code",
+    "pkce": true,
+    "header": "Authorization",
+    "resource": "https://eeypnycefljwkyhxttzo.supabase.co/functions/v1/mcp",
+    "authorization_server": "https://eeypnycefljwkyhxttzo.supabase.co/auth/v1",
+    "protected_resource_metadata": "https://eeypnycefljwkyhxttzo.supabase.co/functions/v1/mcp/.well-known/oauth-protected-resource",
+    "consent_ui": "https://seatsmartapp.shop/.lovable/oauth/consent",
+    "note": "Token OAuth emitido após Aprovar no Turminha — não é anon key nem service role."
+  },
+  "oauth": {
+    "issuer": "https://eeypnycefljwkyhxttzo.supabase.co/auth/v1",
+    "resource": "https://eeypnycefljwkyhxttzo.supabase.co/functions/v1/mcp",
+    "scopes_supported": [
+      "openid",
+      "email",
+      "profile"
+    ]
+  },
+  "instructions": "Comece com list_classes. Para criar dados: create_class → add_students → create_map → generate_seating.",
+  "functions": [
+    {
+      "name": "mcp_echo",
+      "description": "Echo the input text back. Use to verify MCP connectivity.",
+      "mcp_tool": "echo",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Text to echo back."
+          }
+        },
+        "required": [
+          "text"
+        ]
+      },
+      "invoke": {
+        "protocol": "mcp",
+        "transport": "streamable_http",
+        "method": "tools/call",
+        "arguments_key": "arguments"
+      }
+    },
+    {
+      "name": "mcp_list_classes",
+      "description": "Lista as turmas do professor autenticado.",
+      "mcp_tool": "list_classes",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "invoke": {
+        "protocol": "mcp",
+        "transport": "streamable_http",
+        "method": "tools/call",
+        "arguments_key": "arguments"
+      }
+    },
+    {
+      "name": "mcp_list_students",
+      "description": "Lista os alunos de uma turma (id, nome, número, necessidades pedagógicas).",
+      "mcp_tool": "list_students",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "class_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID da turma (obtido em list_classes)."
+          }
+        },
+        "required": [
+          "class_id"
+        ]
+      },
+      "invoke": {
+        "protocol": "mcp",
+        "transport": "streamable_http",
+        "method": "tools/call",
+        "arguments_key": "arguments"
+      }
+    },
+    {
+      "name": "mcp_list_maps",
+      "description": "Lista os mapas de assentos de uma turma.",
+      "mcp_tool": "list_maps",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "class_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID da turma."
+          }
+        },
+        "required": [
+          "class_id"
+        ]
+      },
+      "invoke": {
+        "protocol": "mcp",
+        "transport": "streamable_http",
+        "method": "tools/call",
+        "arguments_key": "arguments"
+      }
+    },
+    {
+      "name": "mcp_create_class",
+      "description": "Cria uma turma nova para o professor autenticado.",
+      "mcp_tool": "create_class",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Nome da turma."
+          },
+          "grade": {
+            "type": "string",
+            "description": "Série ou ano (opcional)."
+          },
+          "room": {
+            "type": "string",
+            "description": "Sala (opcional)."
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "invoke": {
+        "protocol": "mcp",
+        "transport": "streamable_http",
+        "method": "tools/call",
+        "arguments_key": "arguments"
+      }
+    },
+    {
+      "name": "mcp_add_students",
+      "description": "Insere uma lista de alunos em uma turma existente.",
+      "mcp_tool": "add_students",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "class_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "students": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "roll_number": {
+                  "type": "integer"
+                },
+                "profile": {
+                  "type": "string"
+                },
+                "needs": {
+                  "type": "string"
+                },
+                "observation": {
+                  "type": "string"
+                },
+                "notes": {
+                  "type": "string"
+                },
+                "height_cm": {
+                  "type": "number"
+                },
+                "wall_seat": {
+                  "type": "string",
+                  "enum": [
+                    "sim",
+                    "nao",
+                    "qualquer"
+                  ]
+                },
+                "vision_issue": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "name"
+              ]
+            }
+          }
+        },
+        "required": [
+          "class_id",
+          "students"
+        ]
+      },
+      "invoke": {
+        "protocol": "mcp",
+        "transport": "streamable_http",
+        "method": "tools/call",
+        "arguments_key": "arguments"
+      }
+    },
+    {
+      "name": "mcp_update_student",
+      "description": "Atualiza campos pedagógicos de um aluno (patch parcial).",
+      "mcp_tool": "update_student",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "roll_number": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "profile": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "needs": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "observation": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "notes": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "height_cm": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "wall_seat": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "sim",
+              "nao",
+              "qualquer",
+              null
+            ]
+          },
+          "vision_issue": {
+            "type": "boolean"
+          },
+          "locked": {
+            "type": "boolean"
+          },
+          "locked_row": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "locked_col": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "conflicts_with": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "invoke": {
+        "protocol": "mcp",
+        "transport": "streamable_http",
+        "method": "tools/call",
+        "arguments_key": "arguments"
+      }
+    },
+    {
+      "name": "mcp_delete_student",
+      "description": "Remove um aluno da turma. Ação destrutiva — exige confirmação explícita do usuário.",
+      "mcp_tool": "delete_student",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID do aluno a remover."
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "invoke": {
+        "protocol": "mcp",
+        "transport": "streamable_http",
+        "method": "tools/call",
+        "arguments_key": "arguments"
+      }
+    },
+    {
+      "name": "mcp_create_map",
+      "description": "Cria um mapa vazio em uma turma.",
+      "mcp_tool": "create_map",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "class_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "description": "Nome do mapa (opcional)."
+          }
+        },
+        "required": [
+          "class_id"
+        ]
+      },
+      "invoke": {
+        "protocol": "mcp",
+        "transport": "streamable_http",
+        "method": "tools/call",
+        "arguments_key": "arguments"
+      }
+    },
+    {
+      "name": "mcp_generate_seating",
+      "description": "Executa o motor de organização para uma turma+mapa e persiste o layout.",
+      "mcp_tool": "generate_seating",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "class_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "map_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "class_id",
+          "map_id"
+        ]
+      },
+      "invoke": {
+        "protocol": "mcp",
+        "transport": "streamable_http",
+        "method": "tools/call",
+        "arguments_key": "arguments"
+      }
+    }
+  ],
+  "generated_at": "2026-07-04T17:32:16.640Z",
+  "tool_count": 10,
+  "tools_source": "static"
+}

@@ -1,32 +1,41 @@
 /**
- * Gera copilot-tool.json completo a partir das ferramentas do MCP remoto.
+ * Gera manifestos Copilot para o Turminha MCP.
  *
  * Uso:
- *   MCP_AUTH_TOKEN=xxx node generate-functions.js
- *   MCP_AUTH_TOKEN=xxx node generate-functions.js --output copilot-tool.generated.json
- *   MCP_AUTH_TOKEN=xxx node generate-functions.js --update
+ *   node generate-functions.js
+ *   node generate-functions.js --update
+ *   node generate-functions.js --oauth
+ *   MCP_AUTH_TOKEN=xxx node generate-functions.js   # tenta tools/list dinâmico
  */
 
 import "dotenv/config";
 import { writeFile } from "node:fs/promises";
-import { buildManifest } from "./lib/manifest.js";
+import { buildManifest, buildTurminhaOAuthManifest } from "./lib/manifest.js";
+
+async function writeManifest(file, manifest) {
+  await writeFile(file, JSON.stringify(manifest, null, 2) + "\n");
+  console.log(`✓ ${file}`);
+  console.log(`  funções: ${manifest.functions.length} (tools MCP: ${manifest.tool_count})`);
+  console.log(`  origem tools: ${manifest.tools_source}`);
+}
 
 async function main() {
-  const outputArg = process.argv.indexOf("--output");
   const update = process.argv.includes("--update");
-  const outputFile =
-    outputArg !== -1
-      ? process.argv[outputArg + 1]
-      : update
-        ? "copilot-tool.json"
-        : "copilot-tool.generated.json";
+  const oauthOnly = process.argv.includes("--oauth");
+  const dynamic = !process.argv.includes("--static");
 
-  const manifest = await buildManifest({ dynamic: true });
+  if (oauthOnly) {
+    const oauth = await buildTurminhaOAuthManifest({ dynamic });
+    await writeManifest("copilot-tool-turminha-oauth.json", oauth);
+    return;
+  }
 
-  await writeFile(outputFile, JSON.stringify(manifest, null, 2) + "\n");
-  console.log(`Manifesto salvo em ${outputFile}`);
-  console.log(`Total de funções: ${manifest.functions.length}`);
-  console.log(`Ferramentas MCP dinâmicas: ${manifest.tool_count}`);
+  const bridge = await buildManifest({ dynamic });
+  const bridgeFile = update ? "copilot-tool.json" : "copilot-tool.generated.json";
+  await writeManifest(bridgeFile, bridge);
+
+  const oauth = await buildTurminhaOAuthManifest({ dynamic });
+  await writeManifest("copilot-tool-turminha-oauth.json", oauth);
 }
 
 main().catch((err) => {

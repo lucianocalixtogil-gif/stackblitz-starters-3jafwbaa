@@ -12,6 +12,7 @@
     "bridge": "node server.js",
     "generate:copilot-tool": "node generate-functions.js",
     "generate:copilot-tool:update": "node generate-functions.js --update",
+    "generate:copilot-tool:oauth": "node generate-functions.js --oauth",
     "start:bridge": "node server.js",
     "setup": "node setup.js",
     "test:mcp": "node test-mcp.js",
