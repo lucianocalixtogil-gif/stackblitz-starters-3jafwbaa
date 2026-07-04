@@ -16,6 +16,7 @@
     "start:bridge": "node server.js",
     "setup": "node setup.js",
     "test:mcp": "node test-mcp.js",
+    "test:bridge": "node scripts/test-bridge-e2e.mjs",
     "link:turminha": "node link-turminha.js"
   },
   "dependencies": {

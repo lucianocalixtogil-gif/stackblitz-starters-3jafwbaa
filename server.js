@@ -6,7 +6,7 @@
 import "dotenv/config";
 import express from "express";
 import { createServer } from "node:http";
-import { isAuthConfigured } from "./lib/auth.js";
+import { authOptionsFromRequest, isAuthConfigured } from "./lib/auth.js";
 import {
   callMCP,
   callMCPTool,
@@ -70,9 +70,9 @@ app.get("/health", (_req, res) => {
   });
 });
 
-app.post("/mcp/initialize", bridgeAuth, async (_req, res) => {
+app.post("/mcp/initialize", bridgeAuth, async (req, res) => {
   try {
-    res.json(await initializeMCP());
+    res.json(await initializeMCP(authOptionsFromRequest(req)));
   } catch (e) {
     res.status(e.status || 500).json({ error: e.message, details: e.body });
   }
@@ -81,9 +81,10 @@ app.post("/mcp/initialize", bridgeAuth, async (_req, res) => {
 app.post("/mcp/list-tools", bridgeAuth, async (req, res) => {
   try {
     const refresh = Boolean(req.body?.refresh);
+    const authOpts = authOptionsFromRequest(req);
     const tools = refresh
-      ? await refreshMCPTools()
-      : await listMCPTools();
+      ? await refreshMCPTools(authOpts)
+      : await listMCPTools(authOpts);
     res.json({ result: { tools }, cache: getCacheMeta() });
   } catch (e) {
     res.status(e.status || 500).json({ error: e.message, details: e.body });
@@ -99,7 +100,9 @@ app.post("/mcp/call-tool", bridgeAuth, async (req, res) => {
       return res.status(400).json({ error: "tool (ou name) é obrigatório" });
     }
 
-    res.json(await callMCPTool(toolName, args ?? toolArgs ?? {}));
+    res.json(
+      await callMCPTool(toolName, args ?? toolArgs ?? {}, authOptionsFromRequest(req)),
+    );
   } catch (e) {
     res.status(e.status || 500).json({ error: e.message, details: e.body });
   }
@@ -111,15 +114,15 @@ app.post("/mcp/proxy", bridgeAuth, async (req, res) => {
     if (!method) {
       return res.status(400).json({ error: "method é obrigatório" });
     }
-    res.json(await callMCP(method, params || {}));
+    res.json(await callMCP(method, params || {}, authOptionsFromRequest(req)));
   } catch (e) {
     res.status(e.status || 500).json({ error: e.message, details: e.body });
   }
 });
 
-app.post("/mcp/refresh", bridgeAuth, async (_req, res) => {
+app.post("/mcp/refresh", bridgeAuth, async (req, res) => {
   try {
-    const tools = await refreshMCPTools();
+    const tools = await refreshMCPTools(authOptionsFromRequest(req));
     const manifest = await buildManifest({ tools, dynamic: false });
     res.json({
       refreshed: true,
