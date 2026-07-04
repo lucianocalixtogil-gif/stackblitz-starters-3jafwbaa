@@ -1,0 +1,8 @@
+{
+  "servers": {
+    "turminha": {
+      "type": "http",
+      "url": "https://eeypnycefljwkyhxttzo.supabase.co/functions/v1/mcp"
+    }
+  }
+}

@@ -1,0 +1,101 @@
+openapi: 3.1.0
+info:
+  title: MCP Supabase Connector
+  description: |
+    Extensão Copilot que conecta ao servidor MCP hospedado no Supabase.
+    Suporta ferramentas dinâmicas, autenticação JWT/API Key e refresh de cache.
+  version: 1.0.0
+  contact:
+    name: Luciano
+servers:
+  - url: "{baseUrl}"
+    variables:
+      baseUrl:
+        default: http://localhost:3000
+        description: URL pública do bridge (server.js)
+security:
+  - bearerAuth: []
+paths:
+  /health:
+    get:
+      operationId: healthCheck
+      summary: Verifica status do conector
+      security: []
+      responses:
+        "200":
+          description: OK
+  /mcp/initialize:
+    post:
+      operationId: mcpInitialize
+      summary: Inicializa o servidor MCP remoto
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Capacidades do MCP
+  /mcp/list-tools:
+    post:
+      operationId: mcpListTools
+      summary: Lista ferramentas MCP (com cache dinâmico)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refresh:
+                  type: boolean
+                  description: Força atualização do cache
+      responses:
+        "200":
+          description: Lista de ferramentas
+  /mcp/call-tool:
+    post:
+      operationId: mcpCallTool
+      summary: Chama uma ferramenta MCP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [tool]
+              properties:
+                tool:
+                  type: string
+                args:
+                  type: object
+                  additionalProperties: true
+      responses:
+        "200":
+          description: Resultado da ferramenta
+  /mcp/refresh:
+    post:
+      operationId: mcpRefreshTools
+      summary: Atualiza cache de ferramentas dinâmicas
+      responses:
+        "200":
+          description: Manifesto e ferramentas atualizados
+  /copilot-tool.json:
+    get:
+      operationId: getCopilotManifest
+      summary: Retorna manifesto Copilot ao vivo
+      parameters:
+        - name: live
+          in: query
+          schema:
+            type: boolean
+            default: true
+      responses:
+        "200":
+          description: Manifesto completo
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: BRIDGE_AUTH_TOKEN (opcional, protege o bridge)

@@ -1,0 +1,109 @@
+{
+  "schema_version": "v1",
+  "name": "mcp_supabase_connector",
+  "description": "Ferramenta Copilot que conecta ao servidor MCP hospedado no Supabase. Inclui funções base + ferramentas MCP descobertas dinamicamente.",
+  "auth": {
+    "type": "none",
+    "header": "Authorization"
+  },
+  "base_url": "http://localhost:3000",
+  "transport": {
+    "http": true,
+    "websocket": false
+  },
+  "functions": [
+    {
+      "name": "mcp_initialize",
+      "description": "Inicializa o servidor MCP e retorna suas capacidades.",
+      "method": "POST",
+      "url": "/mcp/initialize",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "output_schema": {
+        "type": "object"
+      }
+    },
+    {
+      "name": "mcp_list_tools",
+      "description": "Lista todas as ferramentas disponíveis no servidor MCP.",
+      "method": "POST",
+      "url": "/mcp/list-tools",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "output_schema": {
+        "type": "object"
+      }
+    },
+    {
+      "name": "mcp_call_tool",
+      "description": "Chama uma ferramenta MCP específica com argumentos.",
+      "method": "POST",
+      "url": "/mcp/call-tool",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "tool": {
+            "type": "string",
+            "description": "Nome da ferramenta MCP"
+          },
+          "args": {
+            "type": "object",
+            "description": "Argumentos da ferramenta",
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "tool"
+        ]
+      },
+      "output_schema": {
+        "type": "object"
+      }
+    },
+    {
+      "name": "mcp_proxy",
+      "description": "Proxy genérico para qualquer método MCP (initialize, tools/list, tools/call, etc.).",
+      "method": "POST",
+      "url": "/mcp/proxy",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "method": {
+            "type": "string",
+            "description": "Método MCP (ex: tools/list)"
+          },
+          "params": {
+            "type": "object",
+            "description": "Parâmetros do método",
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "method"
+        ]
+      },
+      "output_schema": {
+        "type": "object"
+      }
+    },
+    {
+      "name": "mcp_refresh_tools",
+      "description": "Atualiza o cache de ferramentas MCP e retorna o manifesto atualizado.",
+      "method": "POST",
+      "url": "/mcp/refresh",
+      "input_schema": {
+        "type": "object",
+        "properties": {}
+      },
+      "output_schema": {
+        "type": "object"
+      }
+    }
+  ],
+  "generated_at": "2026-07-04T16:33:14.418Z",
+  "tool_count": 0
+}

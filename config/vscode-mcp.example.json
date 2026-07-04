@@ -1,0 +1,21 @@
+{
+  "servers": {
+    "supabase-mcp": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["mcp-connector.js"],
+      "env": {
+        "MCP_URL": "https://eeypnycefljwkyhxttzo.supabase.co/functions/v1/mcp",
+        "SUPABASE_KEY": "${input:supabase_key}"
+      }
+    }
+  },
+  "inputs": [
+    {
+      "type": "promptString",
+      "id": "supabase_key",
+      "description": "SUPABASE_KEY (anon, JWT ou service role)",
+      "password": true
+    }
+  ]
+}

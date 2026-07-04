@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "supabase-mcp": {
+      "type": "local",
+      "command": "node",
+      "args": ["mcp-connector.js"],
+      "env": {
+        "MCP_URL": "https://eeypnycefljwkyhxttzo.supabase.co/functions/v1/mcp",
+        "SUPABASE_KEY": "SEU_TOKEN_AQUI"
+      },
+      "tools": ["*"]
+    }
+  }
+}

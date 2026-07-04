@@ -1,0 +1,6 @@
+# Conector Turminha no Grok — OAuth automático (sem SUPABASE_KEY)
+# Copie para .grok/config.toml ou ~/.grok/config.toml
+
+[mcp_servers.turminha]
+url = "https://eeypnycefljwkyhxttzo.supabase.co/functions/v1/mcp"
+enabled = true
